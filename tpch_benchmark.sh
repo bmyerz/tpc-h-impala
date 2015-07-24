@@ -28,7 +28,8 @@ while [ $trial -lt $NUM_OF_TRIALS ]; do
 		echo "Running Hive prepare query: $query" >> $LOG_FILE
 		#$TIME_CMD $HIVE_CMD -f $BASE_DIR/tpch_prepare/${query}.hive 2>&1 | tee -a $LOG_FILE | grep '^Time:'
         # use impala instead of hive for DDL because its way faster
-		$TIME_CMD $IMPALA_CMD --query_file=$BASE_DIR/tpch_prepare/${query}.hive 2>&1 | tee -a $LOG_FILE | grep '^Time:'
+        # also use .impala which are the modified queries
+		$TIME_CMD $IMPALA_CMD --query_file=$BASE_DIR/tpch_prepare/${query}.impala 2>&1 | tee -a $LOG_FILE | grep '^Time:'
                 returncode=${PIPESTATUS[0]}
 		if [ $returncode -ne 0 ]; then
 			echo "ABOVE QUERY FAILED:$returncode"
