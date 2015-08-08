@@ -10,7 +10,6 @@ create external table supplier (S_SUPPKEY INT, S_NAME STRING, S_ADDRESS STRING, 
 
 compute stats lineitem;
 compute stats supplier;
-compute stats revenue;
 
 -- create result tables
 create table revenue(supplier_no int, total_revenue double); 
