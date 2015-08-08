@@ -1,7 +1,4 @@
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS lineitem;
 DROP TABLE IF EXISTS supplier;
-DROP TABLE IF EXISTS nation;
 DROP TABLE IF EXISTS q21_tmp1;
 DROP TABLE IF EXISTS q21_tmp2;
 DROP TABLE IF EXISTS q21_suppliers_who_kept_orders_waiting;
@@ -12,10 +9,7 @@ create external table orders (O_ORDERKEY INT, O_CUSTKEY INT, O_ORDERSTATUS STRIN
 create external table supplier (S_SUPPKEY INT, S_NAME STRING, S_ADDRESS STRING, S_NATIONKEY INT, S_PHONE STRING, S_ACCTBAL DOUBLE, S_COMMENT STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' STORED AS TEXTFILE LOCATION '/user/bdmyers/tpch/hive/__DIR__/supplier';
 create external table nation (N_NATIONKEY INT, N_NAME STRING, N_REGIONKEY INT, N_COMMENT STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' STORED AS TEXTFILE LOCATION '/user/bdmyers/tpch/hive/__DIR__/nation';
 
-compute stats orders;
-compute stats lineitem;
 compute stats supplier;
-compute stats nation;
 
 -- create target tables
 create table q21_tmp1(l_orderkey int, count_suppkey int, max_suppkey int);

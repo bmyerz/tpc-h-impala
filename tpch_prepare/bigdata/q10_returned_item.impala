@@ -1,7 +1,3 @@
-DROP TABLE IF EXISTS lineitem;
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS customer;
-DROP TABLE IF EXISTS nation;
 DROP TABLE IF EXISTS q10_returned_item;
 
 -- create the tables and load the data
@@ -10,10 +6,6 @@ create external table orders (O_ORDERKEY INT, O_CUSTKEY INT, O_ORDERSTATUS STRIN
 create external table customer (C_CUSTKEY INT, C_NAME STRING, C_ADDRESS STRING, C_NATIONKEY INT, C_PHONE STRING, C_ACCTBAL DOUBLE, C_MKTSEGMENT STRING, C_COMMENT STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' STORED AS TEXTFILE LOCATION '/user/bdmyers/tpch/hive/__DIR__/customer';
 create external table nation (N_NATIONKEY INT, N_NAME STRING, N_REGIONKEY INT, N_COMMENT STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' STORED AS TEXTFILE LOCATION '/user/bdmyers/tpch/hive/__DIR__/nation';
 
-compute stats lineitem;
-compute stats orders;
-compute stats customer;
-compute stats nation;
 
 -- create the result table
 create table q10_returned_item (c_custkey int, c_name string, revenue double, c_acctbal string, n_name string, c_address string, c_phone string, c_comment string);
