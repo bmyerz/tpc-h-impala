@@ -21,7 +21,23 @@ echo ""
 if [[ -z $DISABLE_CODEGEN ]]; then
     DISABLE_CODEGEN=0
 fi
-echo "Code generation disabled? $DISABLE_CODEGEN"
+
+# when you are using big data and don't want to re-ingest every time
+# set KEEP_TABLES=1
+preparemod=''
+if [[ $KEEP_TABLES -eq 1 ]]; then
+    echo "Preparing all" | tee -a $LOG_FILE
+    preptmpdir=$BASE_DIR/tpch_prepare/tmp
+    mkdir -p $preptmpdir
+    $BASE_DIR/replace_filename.sh $SF <$BASE_DIR/tpch_prepare/bigdata/prepare-all.impala >$preptmpdir/prepare-all.impala
+    $TIME_CMD $IMPALA_CMD --query_file=$preptmpdir/prepare-all.impala 2>&1 | tee -a $LOG_FILE | grep '^Time:'
+        returncode=${PIPESTATS[0]}
+    if [ $returncode -ne 0 ]; then
+        echo "FAILED INGEST"
+        exit 1
+    fi
+    preparemod=bigdata
+fi
 
 trial=0
 while [ $trial -lt $NUM_OF_TRIALS ]; do
@@ -29,13 +45,16 @@ while [ $trial -lt $NUM_OF_TRIALS ]; do
 	echo "Executing Trial #$trial of $NUM_OF_TRIALS trial(s)..."
 
 	for query in ${TPCH_QUERIES_ALL[@]}; do
-		echo "Running query: $query" | tee -a $LOG_FILE
+		echo "Running query: $query, no_codegen: $DISABLE_CODEGEN, scale: $SF" | tee -a $LOG_FILE
 
 		echo "Running Hive prepare query: $query" >> $LOG_FILE
 		#$TIME_CMD $HIVE_CMD -f $BASE_DIR/tpch_prepare/${query}.hive 2>&1 | tee -a $LOG_FILE | grep '^Time:'
         # use impala instead of hive for DDL because its way faster
         # also use .impala which are the modified queries
-		$TIME_CMD $IMPALA_CMD --query_file=$BASE_DIR/tpch_prepare/${query}.impala 2>&1 | tee -a $LOG_FILE | grep '^Time:'
+        preptmpdir=$BASE_DIR/tpch_prepare/tmp
+        mkdir -p $preptmpdir
+        $BASE_DIR/replace_filename.sh $SF <$BASE_DIR/tpch_prepare/$preparemod/${query}.impala >$preptmpdir/${query}.impala
+		$TIME_CMD $IMPALA_CMD --query_file=$preptmpdir/${query}.impala 2>&1 | tee -a $LOG_FILE | grep '^Time:'
                 returncode=${PIPESTATUS[0]}
 		if [ $returncode -ne 0 ]; then
 			echo "ABOVE QUERY FAILED:$returncode"
@@ -52,10 +71,9 @@ while [ $trial -lt $NUM_OF_TRIALS ]; do
         querytmpdir=$BASE_DIR/tpch_impala/tmp
         mkdir -p $querytmpdir
         if [[ $DISABLE_CODEGEN -eq 1 ]]; then
-            querytmpdir=$BASE_DIR/tpch_impala/tmp
-            cat $BASE_DIR/disable_codegen_snippet.impala $BASE_DIR/tpch_impala/${query}.impala >$querytmpdir/${query}.impala
+            cat $BASE_DIR/disable_codegen_snippet.impala $BASE_DIR/tpch_impala/${query}.impala  >$querytmpdir/${query}.impala
         else
-            cp $BASE_DIR/tpch_impala/${query}.impala $querytmpdir/
+            cp $BASE_DIR/tpch_impala/${query}.impala $querytmpdir/${query}.impala
         fi
             
         echo "Running Impala query: $query" >> $LOG_FILE
